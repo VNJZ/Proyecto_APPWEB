@@ -14,9 +14,9 @@ class _FeedScreenState extends State<FeedScreen> {
   final CardSwiperController controller = CardSwiperController();
 
   final List<PetModel> pets = [
-    PetModel(id: '1', name: 'Max', breed: 'Labrador', age: '2 años', distance: '2 km', imageUrls: []),
-    PetModel(id: '2', name: 'Luna', breed: 'Pug', age: '1 año', distance: '5 km', imageUrls: []),
-    PetModel(id: '3', name: 'Rocky', breed: 'Bulldog', age: '3 años', distance: '1.5 km', imageUrls: []),
+    PetModel(id: '1', name: 'Max', breed: 'Labrador', age: '2 años', distance: '2 km', weight: '5 kg',size: 'Pequeño',imageUrls: []),
+    PetModel(id: '2', name: 'Luna', breed: 'Pug', age: '1 año', distance: '5 km', weight: '2.4 kg',size: 'Mediano',imageUrls: []),
+    PetModel(id: '3', name: 'Rocky', breed: 'Bulldog', age: '3 años', distance: '1.5 km', weight: '14 kg',size: 'Gigante',imageUrls: []),
   ];
 
   @override
