@@ -9,10 +9,18 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
+    return MaterialApp(
+
+      //definimos material design 3
+      theme: ThemeData(
+        useMaterial3: true,
+        colorSchemeSeed: Colors.green, //COLOR TEMPORAL
+      ),
+
+
+      home: const Scaffold(
         body: Center(
-          child: Text('Hello World!'),
+          child: Text('FUNCIONA MATERIAL DESIGN '),   //texto generico cabros CAMBIAR
         ),
       ),
     );
