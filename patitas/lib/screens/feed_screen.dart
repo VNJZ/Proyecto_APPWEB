@@ -8,10 +8,10 @@ class FeedScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Adoptar Mascotas'),
+        title: const Text('adoptar mascotas'),
       ),
       body: const Center(
-        child: Text('Aquí irá el Swipe de Mascotas'),
+        child: Text('aqui iRA el swipe'),   //funciona la conexion
       ),
     );
   }

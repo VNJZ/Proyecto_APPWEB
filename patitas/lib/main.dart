@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/feed_screen.dart';  //aqui importo para mostrar las pantallas de swipe
 
 void main() {
   runApp(const MainApp());
@@ -18,11 +19,15 @@ class MainApp extends StatelessWidget {
       ),
 
 
-      home: const Scaffold(
-        body: Center(
-          child: Text('FUNCIONA MATERIAL DESIGN '),   //texto generico cabros CAMBIAR
-        ),
-      ),
+      //home: const Scaffold(
+      //  body: Center(
+      //    child: Text('FUNCIONA MATERIAL DESIGN '),   //texto generico cabros CAMBIAR
+      //  ),
+      //),
+
+      home: const FeedScreen(), //LA CONEXION
+
+
     );
   }
 }
