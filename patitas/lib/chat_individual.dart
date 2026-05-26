@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'pantalla_mensajes.dart';
+import 'services/mock_auth_service.dart';
 
 // Modelo Mensaje con los mismos campos que tendrá en Firebase
 class Mensaje {
@@ -17,7 +18,8 @@ class Mensaje {
 }
 
 // UID del usuario actual (cuando conectemos Firebase vendrá de FirebaseAuth)
-const String uidActual = 'usuario_prueba_123';
+String get uidActual =>
+    MockAuthService.currentSession?.userId ?? 'usuario_prueba_123';
 
 // Mensajes mock por chat
 final Map<String, List<Mensaje>> mensajesMock = {
