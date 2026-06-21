@@ -11,6 +11,7 @@ class PetModel {
   final List<String> imageUrls;
   final String gender;
   final String orgId;
+  final String tipo;
 
   PetModel({
     required this.id,
@@ -23,6 +24,7 @@ class PetModel {
     required this.imageUrls,
     required this.gender,
     required this.orgId,
+    required this.tipo,
   });
 
   factory PetModel.fromFirestore(DocumentSnapshot doc) {
@@ -63,6 +65,7 @@ class PetModel {
       imageUrls: urls,
       gender: data['genero'] ?? data['gender'] ?? 'Macho',
       orgId: data['orgId'] ?? '',
+      tipo: data['tipo'] ?? data['type'] ?? '',
     );
   }
 
@@ -74,6 +77,7 @@ class PetModel {
       'edad': age,
       'peso': weight,
       'genero': gender,
+      'tipo': tipo,
       'imagenUrl': imageUrls.isNotEmpty ? imageUrls.first : '',
       'imageUrls': imageUrls,
       'orgId': orgId,

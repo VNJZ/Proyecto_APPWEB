@@ -20,6 +20,51 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
   final _direccionController = TextEditingController();
   final _motivoController = TextEditingController();
   bool _enviando = false;
+  bool _cargandoDatos = true;
+
+  // Valores originales cargados desde users/{uid}, para detectar ediciones (T2).
+  String _nombreOriginal = '';
+  String _correoOriginal = '';
+  String _telefonoOriginal = '';
+  String _direccionOriginal = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosAdoptante();
+  }
+
+  // T1 · Precargar nombre, correo, teléfono y dirección desde users/{uid}.
+  Future<void> _cargarDatosAdoptante() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final uid = user?.uid;
+
+      Map<String, dynamic> data = {};
+      if (uid != null) {
+        final doc =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        data = doc.data() ?? {};
+      }
+
+      _nombreOriginal = (data['displayName'] ?? user?.displayName ?? '').toString();
+      _correoOriginal = (data['email'] ?? user?.email ?? '').toString();
+      _telefonoOriginal = (data['phone'] ?? '').toString();
+      _direccionOriginal = (data['city'] ?? '').toString();
+
+      if (!mounted) return;
+      setState(() {
+        _nombreController.text = _nombreOriginal;
+        _correoController.text = _correoOriginal;
+        _telefonoController.text = _telefonoOriginal;
+        _direccionController.text = _direccionOriginal;
+        _cargandoDatos = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _cargandoDatos = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -75,6 +120,27 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
         'adoptanteId': uid,
         'orgId': orgId,
       });
+
+      // T2 · Si el adoptante editó algún dato de contacto, persistirlo en
+      // users/{uid} (merge:true) para precargarlo en la próxima solicitud.
+      final nombre = _nombreController.text.trim();
+      final correo = _correoController.text.trim();
+      final telefono = _telefonoController.text.trim();
+      final direccion = _direccionController.text.trim();
+
+      final cambios = <String, dynamic>{};
+      if (nombre != _nombreOriginal) cambios['displayName'] = nombre;
+      if (correo != _correoOriginal) cambios['email'] = correo;
+      if (telefono != _telefonoOriginal) cambios['phone'] = telefono;
+      if (direccion != _direccionOriginal) cambios['city'] = direccion;
+
+      if (cambios.isNotEmpty && uid != 'anonimo') {
+        batch.set(
+          db.collection('users').doc(uid),
+          cambios,
+          SetOptions(merge: true),
+        );
+      }
 
       await batch.commit();
 
@@ -158,6 +224,12 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
             ),
 
             // Formulario
+            if (_cargandoDatos)
+              const Padding(
+                padding: EdgeInsets.all(48),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
             Padding(
               padding: const EdgeInsets.all(20),
               child: Form(

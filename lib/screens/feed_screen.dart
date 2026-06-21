@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/pet_model.dart';
 import 'pet_detail_screen.dart';
 import 'adoption_form_screen.dart';
@@ -16,6 +17,25 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   final CardSwiperController controller = CardSwiperController();
+
+  // T4 · Preferencia de tipo (Perro/Gato/Ambos) leída de SharedPreferences.
+  String _prefTipo = 'Ambos';
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarPreferenciaTipo();
+  }
+
+  Future<void> _cargarPreferenciaTipo() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _prefTipo = prefs.getString('pref_tipo_$uid') ?? 'Ambos';
+    });
+  }
 
   @override
   void dispose() {
@@ -38,7 +58,7 @@ class _FeedScreenState extends State<FeedScreen> {
               icon: const Icon(Icons.filter_list),
               onPressed: () {
                 PreferencesDialog.show(context, uid, onSaved: () {
-                  setState(() {}); // Re-construye para refrescar preferencias si corresponde
+                  _cargarPreferenciaTipo(); // Recarga la preferencia y refresca el feed
                 });
               },
               tooltip: 'Filtros de preferencia',
@@ -66,6 +86,8 @@ class _FeedScreenState extends State<FeedScreen> {
               return pet;
             })
             .where((pet) => pet.orgId != uid)
+            // T4 · Aplicar preferencia de tipo: si no es "Ambos", solo ese tipo.
+            .where((pet) => _prefTipo == 'Ambos' || pet.tipo == _prefTipo)
             .toList();
 
             if (pets.isEmpty) {
