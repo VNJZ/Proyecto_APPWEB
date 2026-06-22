@@ -10,8 +10,32 @@
 
 ## 🎯 Qué hacer AHORA
 
-**T1 + T2:** lograr que el formulario de adopción **no vuelva a pedir** los datos del usuario.
-Es el requisito #1 del profesor y es un cambio pequeño. Al terminar, sigue con **T3**.
+## ❓ Decisiones que faltan resolver
+
+### Decisión A — ¿Quién puede publicar mascotas?
+
+Hoy publica cualquiera, pero solo el rol "organización" puede aprobar solicitudes. Si una persona
+natural publica, su chat nunca se desbloquea. → Hay que elegir: solo refugios, o también personas
+(y en ese caso darles el panel de solicitudes). **Esto define T5.**
+
+### Decisión B — ¿Qué pasa con la publicación al aceptar una adopción?
+
+Hoy al aprobar, la mascota queda "en proceso" (sale del feed) pero nunca llega a "adoptada", y las
+otras solicitudes quedan colgadas. → Recomendado: agregar un botón manual "Marcar como adoptada"
+que cierre todo. **Esto define T12 y T13.**
+
+---
+
+## 📌 Apéndice — estado actual (para retomar rápido)
+
+**Ya funciona:** login (email + Google con roles), registro, feed tipo Tinder, diálogo de
+preferencia una sola vez + botón de filtro, formulario de adopción que crea solicitud + chat
+bloqueado, **chat completo** (se desbloquea al aprobar desde el panel), perfil que lee/escribe en
+Firestore, publicar mascota con foto, favoritos locales.
+
+**Roto / pendiente:** persona natural no puede aprobar sus solicitudes (T5), nunca se marca "adoptado" (T12-T13),
+y quedan colores fuera del tema MD3 (T8).
+```
 
 ---
 
@@ -19,19 +43,19 @@ Es el requisito #1 del profesor y es un cambio pequeño. Al terminar, sigue con 
 
 ### 🔴 P0 · Sin esto no se entrega
 
-- [x] ⏳ **T1 · Precargar datos del adoptante** — `adoption_form_screen.dart`
+- [x] ✅ **T1 · Precargar datos del adoptante** — `adoption_form_screen.dart`
   Leer `users/{uid}` y rellenar nombre, correo, teléfono y dirección. El usuario solo escribe el motivo.
   ✓ *Listo cuando:* el formulario abre con los campos ya rellenos.
 
-- [x] ⏳ **T2 · Guardar cambios de datos** — `adoption_form_screen.dart`
+- [x] ✅ **T2 · Guardar cambios de datos** — `adoption_form_screen.dart`
   Si el usuario edita algún dato de contacto, guardarlo en `users/{uid}` (`merge:true`) para la próxima vez.
   ✓ *Listo cuando:* editar el teléfono lo deja persistido para la siguiente solicitud.
 
-- [x] **T3 · Que el modelo lea el tipo** — `pet_model.dart`
+- [x] ✅ **T3 · Que el modelo lea el tipo** — `pet_model.dart`
   Agregar el campo `tipo` (Perro/Gato) leyéndolo desde Firestore en `fromFirestore`.
   ✓ *Listo cuando:* el modelo expone `pet.tipo`.
 
-- [x] **T4 · Aplicar la preferencia al feed** — `feed_screen.dart`
+- [x] ✅ **T4 · Aplicar la preferencia al feed** — `feed_screen.dart`
   Leer `pref_tipo_$uid` y, si no es "Ambos", mostrar solo mascotas de ese tipo.
   ✓ *Listo cuando:* elegir "Perros" muestra solo perros.
 
@@ -49,7 +73,7 @@ Es el requisito #1 del profesor y es un cambio pequeño. Al terminar, sigue con 
   Reemplazar el "Refugio Patitas" fijo del encabezado por el nombre real de `users/{orgId}`.
   ✓ *Listo cuando:* el encabezado muestra el nombre real del refugio/dueño.
 
-### 🟡 P2 · Material Design 3 estricto (lo pide el profesor)
+### 🟡 P2 · Material Design 3 estricto (se supone que es para cumplir los estandares de MatDes3)
 
 - [ ] **T8 · Sacar colores hardcodeados** — `pet_detail_screen.dart`, `feed_screen.dart`
   Cambiar colores crudos (naranjos, crema, azul/rosa) por roles de `colorScheme`.
@@ -106,30 +130,4 @@ Es el requisito #1 del profesor y es un cambio pequeño. Al terminar, sigue con 
 
 ---
 
-## ❓ Decisiones que faltan resolver
 
-### Decisión A — ¿Quién puede publicar mascotas?
-
-Hoy publica cualquiera, pero solo el rol "organización" puede aprobar solicitudes. Si una persona
-natural publica, su chat nunca se desbloquea. → Hay que elegir: solo refugios, o también personas
-(y en ese caso darles el panel de solicitudes). **Esto define T5.**
-
-### Decisión B — ¿Qué pasa con la publicación al aceptar una adopción?
-
-Hoy al aprobar, la mascota queda "en proceso" (sale del feed) pero nunca llega a "adoptada", y las
-otras solicitudes quedan colgadas. → Recomendado: agregar un botón manual "Marcar como adoptada"
-que cierre todo. **Esto define T12 y T13.**
-
----
-
-## 📌 Apéndice — estado actual (para retomar rápido)
-
-**Ya funciona:** login (email + Google con roles), registro, feed tipo Tinder, diálogo de
-preferencia una sola vez + botón de filtro, formulario de adopción que crea solicitud + chat
-bloqueado, **chat completo** (se desbloquea al aprobar desde el panel), perfil que lee/escribe en
-Firestore, publicar mascota con foto, favoritos locales.
-
-**Roto / pendiente:** el formulario re-pide los datos (T1-T2), la preferencia no filtra el feed
-(T3-T4), persona natural no puede aprobar sus solicitudes (T5), nunca se marca "adoptado" (T12-T13),
-y quedan colores fuera del tema MD3 (T8).
-```
