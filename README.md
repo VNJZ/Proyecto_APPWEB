@@ -1,133 +1,123 @@
-# 🐾 Patitas — Checklist de entrega
+# Patitas - Checklist de entrega
 
-> **⏳ EN CURSO:** T1 y T2 — precargar datos del adoptante
-> **✅ Hechas:** ninguna   ·   **⬜ Pendientes:** T3–T16
+> **EN CURSO:** T8-T11 - ajustes de Material Design 3
+> **Hechas:** T1-T7, T12-T14
+> **Pendientes:** T8-T11, T15-T16
 >
-> **Cómo usar este archivo:** marca `[x]` cuando termines una tarea y mueve la línea
-> "EN CURSO" a la siguiente. Cada tarea dice *qué hacer*, *en qué archivo* y *cuándo está lista*.
+> Marca `[x]` cuando una tarea quede realmente lista en código. Este archivo ya fue actualizado según el avance implementado en este repositorio.
 
 ---
 
-## 🎯 Qué hacer AHORA
+## Decisiones resueltas
 
-## ❓ Decisiones que faltan resolver
+### Decision A - Quien puede publicar mascotas
 
-### Decisión A — ¿Quién puede publicar mascotas?
+Se mantiene que cualquier usuario autenticado puede publicar mascotas.
+Tambien se habilito que una persona natural pueda abrir el panel de sus publicaciones y aprobar o rechazar solicitudes sobre mascotas con `orgId == su uid`.
 
-Hoy publica cualquiera, pero solo el rol "organización" puede aprobar solicitudes. Si una persona
-natural publica, su chat nunca se desbloquea. → Hay que elegir: solo refugios, o también personas
-(y en ese caso darles el panel de solicitudes). **Esto define T5.**
+### Decision B - Que pasa con la publicacion al aceptar una adopcion
 
-### Decisión B — ¿Qué pasa con la publicación al aceptar una adopción?
+Se agrego el flujo recomendado:
 
-Hoy al aprobar, la mascota queda "en proceso" (sale del feed) pero nunca llega a "adoptada", y las
-otras solicitudes quedan colgadas. → Recomendado: agregar un botón manual "Marcar como adoptada"
-que cierre todo. **Esto define T12 y T13.**
-
----
-
-## 📌 Apéndice — estado actual (para retomar rápido)
-
-**Ya funciona:** login (email + Google con roles), registro, feed tipo Tinder, diálogo de
-preferencia una sola vez + botón de filtro, formulario de adopción que crea solicitud + chat
-bloqueado, **chat completo** (se desbloquea al aprobar desde el panel), perfil que lee/escribe en
-Firestore, publicar mascota con foto, favoritos locales.
-
-**Roto / pendiente:** persona natural no puede aprobar sus solicitudes (T5), nunca se marca "adoptado" (T12-T13),
-y quedan colores fuera del tema MD3 (T8).
-```
+- Al aprobar una solicitud, la mascota pasa a `en_proceso` y se desbloquea ese chat.
+- Las otras solicitudes pendientes de esa mascota se cierran automaticamente.
+- Desde el panel aparece el boton **Marcar adoptada** para cerrar el caso y dejar la mascota en `adoptado`.
 
 ---
 
-## ✅ MVP — lo que hay que entregar
+## Estado actual
 
-### 🔴 P0 · Sin esto no se entrega
+**Ya funciona:** login (email + Google con roles), registro, feed tipo Tinder, dialogo de preferencia una sola vez + boton de filtro, formulario de adopcion con datos precargados, persistencia de datos del adoptante, bloqueo de solicitudes duplicadas, chat completo, perfil conectado a Firestore, publicar mascota con foto, panel para publicadores naturales y organizaciones, cierre automatico de solicitudes competidoras, boton para marcar mascota como adoptada, favoritos locales.
 
-- [x] ✅ **T1 · Precargar datos del adoptante** — `adoption_form_screen.dart`
-  Leer `users/{uid}` y rellenar nombre, correo, teléfono y dirección. El usuario solo escribe el motivo.
-  ✓ *Listo cuando:* el formulario abre con los campos ya rellenos.
+**Pendiente principal:** colores hardcodeados y ajustes MD3 (`T8-T11`), mas la gestion de publicaciones propias (`T15-T16`).
 
-- [x] ✅ **T2 · Guardar cambios de datos** — `adoption_form_screen.dart`
-  Si el usuario edita algún dato de contacto, guardarlo en `users/{uid}` (`merge:true`) para la próxima vez.
-  ✓ *Listo cuando:* editar el teléfono lo deja persistido para la siguiente solicitud.
+---
 
-- [x] ✅ **T3 · Que el modelo lea el tipo** — `pet_model.dart`
-  Agregar el campo `tipo` (Perro/Gato) leyéndolo desde Firestore en `fromFirestore`.
-  ✓ *Listo cuando:* el modelo expone `pet.tipo`.
+## MVP - lo que hay que entregar
 
-- [x] ✅ **T4 · Aplicar la preferencia al feed** — `feed_screen.dart`
-  Leer `pref_tipo_$uid` y, si no es "Ambos", mostrar solo mascotas de ese tipo.
-  ✓ *Listo cuando:* elegir "Perros" muestra solo perros.
+### P0 - Sin esto no se entrega
 
-### 🟠 P1 · Flujo sin callejones sin salida
+- [x] **T1 - Precargar datos del adoptante** - `adoption_form_screen.dart`
+  Leer `users/{uid}` y rellenar nombre, correo, telefono y direccion. El usuario solo escribe el motivo.
+  Listo cuando el formulario abre con los campos ya rellenos.
 
-- [ ] **T5 · Definir y aplicar quién publica** — `main.dart` / `profile_screen.dart` *(depende de Decisión A)*
-  O se oculta el botón de publicar a adoptantes, o se da el panel de solicitudes a todo el que publica.
-  ✓ *Listo cuando:* todo el que publica puede aprobar/rechazar sus solicitudes.
+- [x] **T2 - Guardar cambios de datos** - `adoption_form_screen.dart`
+  Si el usuario edita algun dato de contacto, guardarlo en `users/{uid}` con `merge:true` para la proxima vez.
+  Listo cuando editar el telefono lo deja persistido para la siguiente solicitud.
 
-- [ ] **T6 · Evitar solicitudes duplicadas** — `adoption_form_screen.dart`
+- [x] **T3 - Que el modelo lea el tipo** - `pet_model.dart`
+  Agregar el campo `tipo` (Perro/Gato) leyendolo desde Firestore en `fromFirestore`.
+  Listo cuando el modelo expone `pet.tipo`.
+
+- [x] **T4 - Aplicar la preferencia al feed** - `feed_screen.dart`
+  Leer `pref_tipo_$uid` y, si no es `Ambos`, mostrar solo mascotas de ese tipo.
+  Listo cuando elegir `Perros` muestra solo perros.
+
+### P1 - Flujo sin callejones sin salida
+
+- [x] **T5 - Definir y aplicar quien publica** - `profile_screen.dart`, `org_panel_screen.dart`
+  Se opto por permitir que cualquier publicador gestione solicitudes de sus mascotas.
+  Listo cuando todo el que publica puede aprobar o rechazar sus solicitudes.
+
+- [x] **T6 - Evitar solicitudes duplicadas** - `adoption_form_screen.dart`
   Antes de crear la solicitud, revisar si ya existe una para esa mascota y ese usuario; si existe, abrir el chat actual.
-  ✓ *Listo cuando:* dar swipe derecha dos veces no crea chats repetidos.
+  Listo cuando dar swipe derecha dos veces no crea chats repetidos.
 
-- [ ] **T7 · Mostrar el dueño real** — `adoption_form_screen.dart`
-  Reemplazar el "Refugio Patitas" fijo del encabezado por el nombre real de `users/{orgId}`.
-  ✓ *Listo cuando:* el encabezado muestra el nombre real del refugio/dueño.
+- [x] **T7 - Mostrar el dueno real** - `adoption_form_screen.dart`
+  Reemplazar el texto fijo del encabezado por el nombre real de `users/{orgId}`.
+  Listo cuando el encabezado muestra el nombre real del refugio o publicador.
 
-### 🟡 P2 · Material Design 3 estricto (se supone que es para cumplir los estandares de MatDes3)
+### P2 - Material Design 3 estricto
 
-- [ ] **T8 · Sacar colores hardcodeados** — `pet_detail_screen.dart`, `feed_screen.dart`
-  Cambiar colores crudos (naranjos, crema, azul/rosa) por roles de `colorScheme`.
-  ✓ *Listo cuando:* el tema controla los colores y nada se rompe en dark mode.
+- [ ] **T8 - Sacar colores hardcodeados** - `pet_detail_screen.dart`, `feed_screen.dart`
+  Cambiar colores crudos por roles de `colorScheme`.
+  Listo cuando el tema controla los colores y nada se rompe en dark mode.
 
-- [ ] **T9 · Reemplazar API deprecada** — todo el proyecto
+- [ ] **T9 - Reemplazar API deprecada** - todo el proyecto
   Cambiar `.withOpacity(x)` por `.withValues(alpha: x)`.
-  ✓ *Listo cuando:* `flutter analyze` no avisa por `withOpacity`.
+  Listo cuando no queden usos de `withOpacity`.
 
-- [ ] **T10 · Revisar tamaños y overflow** — `pet_detail_screen.dart`, `main.dart`
-  Área táctil mínima 48dp; que las cajas de Edad/Peso/Tamaño no desborden en pantallas angostas.
-  ✓ *Listo cuando:* no hay overflow en 360dp de ancho.
+- [ ] **T10 - Revisar tamanos y overflow** - `pet_detail_screen.dart`, `main.dart`
+  Area tactil minima 48dp; que las cajas de Edad/Peso/Tamano no desborden en pantallas angostas.
+  Listo cuando no hay overflow en 360dp de ancho.
 
-- [ ] **T11 · Unificar espaciados** — pantallas del flujo principal
-  Dejar paddings y separaciones en múltiplos de 4/8.
-  ✓ *Listo cuando:* los espaciados se ven consistentes.
+- [ ] **T11 - Unificar espaciados** - pantallas del flujo principal
+  Dejar paddings y separaciones en multiplos de 4/8.
+  Listo cuando los espaciados se ven consistentes.
 
-### 🟢 P3 · Consistencia de datos
+### P3 - Consistencia de datos
 
-- [ ] **T12 · Marcar mascota como adoptada** — `org_panel_screen.dart` *(depende de Decisión B)*
-  Botón "Marcar como adoptada" que pone `estado='adoptado'`.
-  ✓ *Listo cuando:* una mascota adoptada sale del feed de forma definitiva.
+- [x] **T12 - Marcar mascota como adoptada** - `org_panel_screen.dart`
+  Boton `Marcar adoptada` que pone `estado='adoptado'`.
+  Listo cuando una mascota adoptada sale del feed de forma definitiva.
 
-- [ ] **T13 · Cerrar solicitudes competidoras** — `org_panel_screen.dart`
-  Al aprobar a un adoptante, rechazar/cerrar las demás solicitudes pendientes de esa mascota.
-  ✓ *Listo cuando:* aprobar a uno cierra automáticamente al resto.
+- [x] **T13 - Cerrar solicitudes competidoras** - `org_panel_screen.dart`
+  Al aprobar a un adoptante, rechazar o cerrar las demas solicitudes pendientes de esa mascota.
+  Listo cuando aprobar a uno cierra automaticamente al resto.
 
-- [ ] **T14 · Cuadrar contadores del perfil** — `profile_screen.dart`
-  Verificar que "en proceso" y "adopciones" cuenten los estados correctos.
-  ✓ *Listo cuando:* los números del perfil reflejan la realidad.
+- [x] **T14 - Cuadrar contadores del perfil** - `profile_screen.dart`
+  Ajustar los contadores del perfil a los estados reales del flujo.
+  Listo cuando `En proceso` y `Adopciones` reflejan mejor el avance de cada caso.
 
-### 🔵 P4 · Gestión de publicaciones
+### P4 - Gestion de publicaciones
 
-- [ ] **T15 · Ver mis publicaciones** — `my_publications_screen.dart` (nuevo), `profile_screen.dart`
-  Apartado "Mis publicaciones" en el perfil que lista las mascotas con `orgId == miUid`; visible para todos los usuarios.
-  ✓ *Listo cuando:* desde el perfil abro la lista y veo mis mascotas publicadas.
+- [ ] **T15 - Ver mis publicaciones** - `my_publications_screen.dart`, `profile_screen.dart`
+  Apartado `Mis publicaciones` en el perfil que liste las mascotas con `orgId == miUid`; visible para todos los usuarios.
+  Listo cuando desde el perfil abro la lista y veo mis mascotas publicadas.
 
-- [ ] **T16 · Editar una publicación** — `publish_pet_screen.dart`, `my_publications_screen.dart`
+- [ ] **T16 - Editar una publicacion** - `publish_pet_screen.dart`, `my_publications_screen.dart`
   Reutilizar el formulario de publicar con un `petId` opcional: si viene, precarga los datos y actualiza el mismo documento en vez de crear uno nuevo.
-  ✓ *Listo cuando:* edito una mascota y sus datos cambian sin duplicarla; publicar nuevo sigue igual.
+  Listo cuando edito una mascota y sus datos cambian sin duplicarla; publicar nuevo sigue igual.
 
 ---
 
-## 💡 Extras — solo si sobra tiempo (no bloquean la entrega)
+## Extras - solo si sobra tiempo
 
-- [ ] **E1** · Pantalla "Lista de Favoritos" (los favoritos ya se guardan, falta verlos).
-- [ ] **E2** · Mover favoritos a Firestore para sincronizar entre dispositivos.
-- [ ] **E3** · Filtrar el feed también por raza y edad.
-- [ ] **E4** · Notificaciones (colección `notificaciones`).
-- [ ] **E5** · Distancia real por GPS (hoy está fija en "2.5 km").
-- [ ] **E6** · Modo oscuro.
-- [ ] **E7** · Limpieza: borrar `mock_auth_service.dart` y `mockUserProfile` (código muerto).
-- [ ] **E8** · Endurecer reglas de seguridad de Firestore/Storage.
-
----
-
-
+- [ ] **E1** - Pantalla `Lista de Favoritos`.
+- [ ] **E2** - Mover favoritos a Firestore para sincronizar entre dispositivos.
+- [ ] **E3** - Filtrar el feed tambien por raza y edad.
+- [ ] **E4** - Notificaciones con coleccion `notificaciones`.
+- [ ] **E5** - Distancia real por GPS.
+- [ ] **E6** - Modo oscuro.
+- [ ] **E7** - Limpieza: borrar `mock_auth_service.dart` y `mockUserProfile`.
+- [ ] **E8** - Endurecer reglas de seguridad de Firestore y Storage.

@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 import '../models/auth_session.dart';
 import '../models/user_profile.dart';
@@ -9,8 +9,8 @@ import 'org_panel_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final AuthSession session;
-  final UserProfile profile; // Mantenido por retrocompatibilidad de firma
-  final ValueChanged<UserProfile> onProfileUpdated; // Mantenido por retrocompatibilidad de firma
+  final UserProfile profile;
+  final ValueChanged<UserProfile> onProfileUpdated;
 
   const ProfileScreen({
     super.key,
@@ -20,23 +20,23 @@ class ProfileScreen extends StatelessWidget {
   });
 
   void _openOrgPanel(BuildContext context) {
-    final orgId = session.orgId;
-    if (orgId == null) return;
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => OrgPanelScreen(orgId: orgId),
+        builder: (_) => OrgPanelScreen(orgId: session.userId),
       ),
     );
   }
 
-  Future<void> _openEditProfile(BuildContext context, UserProfile currentProfile) async {
+  Future<void> _openEditProfile(
+    BuildContext context,
+    UserProfile currentProfile,
+  ) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => EditProfileScreen(profile: currentProfile),
       ),
     );
-    // Como escuchamos un StreamBuilder de Firestore, los cambios se reflejan solos.
   }
 
   Future<void> _confirmLogout(BuildContext context) async {
@@ -69,7 +69,10 @@ class ProfileScreen extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(session.userId).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(session.userId)
+          .snapshots(),
       builder: (context, userSnapshot) {
         if (userSnapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -95,43 +98,53 @@ class ProfileScreen extends StatelessWidget {
           photoUrl: photoUrl,
           activeApplications: 0,
           completedAdoptions: 0,
-          adoptionHistory: [],
+          adoptionHistory: const [],
         );
 
-        // Consultamos las solicitudes para llenar contadores e historial
         return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('solicitudes')
-              .where(session.isOrganizacion ? 'orgId' : 'adoptanteId', isEqualTo: session.userId)
+              .where(
+                session.isOrganizacion ? 'orgId' : 'adoptanteId',
+                isEqualTo: session.userId,
+              )
               .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, solSnapshot) {
             int activeApps = 0;
             int completedAdoptions = 0;
-            final List<AdoptionHistoryItem> history = [];
+            final history = <AdoptionHistoryItem>[];
 
             if (solSnapshot.hasData) {
-              for (var doc in solSnapshot.data!.docs) {
+              for (final doc in solSnapshot.data!.docs) {
                 final solData = doc.data() as Map<String, dynamic>;
                 final estado = solData['estado'] as String? ?? 'pendiente';
-                
-                if (estado == 'pendiente') {
+
+                if (estado == 'pendiente' || estado == 'aprobada') {
                   activeApps++;
-                } else if (estado == 'aprobada') {
+                } else if (estado == 'adoptada') {
                   completedAdoptions++;
                 }
 
-                history.add(AdoptionHistoryItem(
-                  petName: solData['petName'] ?? 'Mascota',
-                  species: solData['petBreed'] ?? 'Mascota',
-                  shelterName: session.isOrganizacion ? fullName : 'Refugio Patitas',
-                  date: (solData['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-                  status: estado == 'aprobada'
-                      ? 'Completada'
-                      : estado == 'pendiente'
-                          ? 'En revisión'
-                          : 'Rechazada',
-                ));
+                history.add(
+                  AdoptionHistoryItem(
+                    petName: solData['petName'] ?? 'Mascota',
+                    species: solData['petBreed'] ?? 'Mascota',
+                    shelterName: session.isOrganizacion
+                        ? fullName
+                        : (solData['orgDisplayName'] as String?) ?? 'Publicador',
+                    date:
+                        (solData['createdAt'] as Timestamp?)?.toDate() ??
+                        DateTime.now(),
+                    status: switch (estado) {
+                      'adoptada' => 'Adoptada',
+                      'aprobada' => 'Aprobada',
+                      'pendiente' => 'En proceso',
+                      'rechazada' => 'Rechazada',
+                      _ => 'Cerrada',
+                    },
+                  ),
+                );
               }
             }
 
@@ -189,9 +202,10 @@ class ProfileScreen extends StatelessWidget {
                           const SizedBox(height: 12),
                           Text(
                             finalProfile.fullName,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.bold),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 6),
@@ -208,7 +222,8 @@ class ProfileScreen extends StatelessWidget {
                             children: [
                               Expanded(
                                 child: FilledButton.icon(
-                                  onPressed: () => _openEditProfile(context, finalProfile),
+                                  onPressed: () =>
+                                      _openEditProfile(context, finalProfile),
                                   icon: const Icon(Icons.edit_outlined),
                                   label: const Text('Editar'),
                                 ),
@@ -249,30 +264,28 @@ class ProfileScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 20),
-                    if (session.isOrganizacion) ...[
-                      _SectionCard(
-                        title: 'Panel de organización',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Revisa las solicitudes de adopción pendientes y gestiona las mascotas publicadas por tu refugio.',
-                              style: Theme.of(context).textTheme.bodyMedium,
+                    _SectionCard(
+                      title: 'Mis publicaciones y solicitudes',
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Gestiona las solicitudes de adopción de las mascotas que publicaste, aunque tu cuenta no sea de organización.',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: () => _openOrgPanel(context),
+                              icon: const Icon(Icons.dashboard_outlined),
+                              label: const Text('Abrir panel'),
                             ),
-                            const SizedBox(height: 14),
-                            SizedBox(
-                              width: double.infinity,
-                              child: FilledButton.icon(
-                                onPressed: () => _openOrgPanel(context),
-                                icon: const Icon(Icons.dashboard_outlined),
-                                label: const Text('Abrir panel'),
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                    ],
+                    ),
+                    const SizedBox(height: 16),
                     _SectionCard(
                       title: 'Datos de contacto',
                       child: Column(
@@ -306,7 +319,9 @@ class ProfileScreen extends StatelessWidget {
                           ? const Center(
                               child: Padding(
                                 padding: EdgeInsets.symmetric(vertical: 20),
-                                child: Text('No hay historial de adopciones aún.'),
+                                child: Text(
+                                  'No hay historial de adopciones aún.',
+                                ),
                               ),
                             )
                           : Column(
@@ -354,9 +369,9 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             value,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Text(label),
@@ -388,9 +403,9 @@ class _SectionCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 14),
           child,

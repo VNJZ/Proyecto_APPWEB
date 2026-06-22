@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/pet_model.dart';
+import '../chat_individual.dart';
+import '../pantalla_mensajes.dart';
 
 class AdoptionFormScreen extends StatefulWidget {
   final PetModel pet;
@@ -21,6 +23,7 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
   final _motivoController = TextEditingController();
   bool _enviando = false;
   bool _cargandoDatos = true;
+  String _duenoNombre = 'Publicador';
 
   // Valores originales cargados desde users/{uid}, para detectar ediciones (T2).
   String _nombreOriginal = '';
@@ -32,6 +35,7 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
   void initState() {
     super.initState();
     _cargarDatosAdoptante();
+    _cargarNombrePublicador();
   }
 
   // T1 · Precargar nombre, correo, teléfono y dirección desde users/{uid}.
@@ -66,6 +70,64 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
     }
   }
 
+  Future<void> _cargarNombrePublicador() async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.pet.orgId)
+          .get();
+      final data = doc.data() ?? {};
+      final nombre = (data['displayName'] ?? '').toString().trim();
+      if (!mounted || nombre.isEmpty) return;
+      setState(() => _duenoNombre = nombre);
+    } catch (_) {
+      // Si falla la lectura, mantenemos el texto genérico.
+    }
+  }
+
+  Chat _buildChat({
+    required String chatId,
+    required String petId,
+    required Map<String, dynamic> data,
+  }) {
+    final timestampRaw = data['timestamp'];
+    final timestamp = timestampRaw is Timestamp
+        ? timestampRaw.toDate()
+        : DateTime.now();
+
+    return Chat(
+      id: chatId,
+      nombre: (data['nombre'] as String?) ?? 'Solicitud: ${widget.pet.name}',
+      ultimoMensaje:
+          (data['ultimoMensaje'] as String?) ?? 'Solicitud de adopción enviada.',
+      timestamp: timestamp,
+      petId: petId,
+      matchAprobado: (data['matchAprobado'] as bool?) ?? false,
+      participantes: List<String>.from(data['participantes'] ?? const []),
+    );
+  }
+
+  Future<void> _abrirChatExistente(String solicitudId) async {
+    final chatDoc = await FirebaseFirestore.instance
+        .collection('chats')
+        .doc(solicitudId)
+        .get();
+    final chatData = chatDoc.data() ?? {};
+
+    if (!mounted) return;
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => ChatIndividual(
+          chat: _buildChat(
+            chatId: solicitudId,
+            petId: widget.pet.id,
+            data: chatData,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _nombreController.dispose();
@@ -85,6 +147,26 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
       final orgId = widget.pet.orgId;
       
       final db = FirebaseFirestore.instance;
+      final solicitudExistente = await db
+          .collection('solicitudes')
+          .where('petId', isEqualTo: widget.pet.id)
+          .where('adoptanteId', isEqualTo: uid)
+          .limit(1)
+          .get();
+
+      if (solicitudExistente.docs.isNotEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Ya existe una solicitud para esta mascota. Abriendo el chat actual.',
+            ),
+          ),
+        );
+        await _abrirChatExistente(solicitudExistente.docs.first.id);
+        return;
+      }
+
       final solDocRef = db.collection('solicitudes').doc();
       final solId = solDocRef.id;
 
@@ -97,6 +179,7 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
         'petName': widget.pet.name,
         'petBreed': widget.pet.breed,
         'orgId': orgId,
+        'orgDisplayName': _duenoNombre,
         'adoptanteId': uid,
         'nombre': _nombreController.text.trim(),
         'correo': _correoController.text.trim(),
@@ -212,7 +295,7 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
                           Icon(Icons.home_outlined, size: 14, color: colorScheme.onSurfaceVariant),
                           const SizedBox(width: 4),
                           Text(
-                            'Refugio Patitas',
+                            _duenoNombre,
                             style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],
