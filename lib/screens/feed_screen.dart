@@ -217,6 +217,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                         style: textTheme.headlineMedium?.copyWith(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
+                                          fontSize: 32, //NOMBREEEE
                                         ),
                                       ),
                                     ),
@@ -232,7 +233,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 13,
+                                          fontSize: 18,   //SI ES SIX O SI ES SEVEN
                                         ),
                                       ),
                                     ),
@@ -243,6 +244,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                   '${pet.breed} • ${pet.age}',
                                   style: textTheme.titleMedium?.copyWith(
                                     color: Colors.white.withOpacity(0.9),
+                                    fontSize: 22,     //EDAD JUNTO CON EL NOMBRE 
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -254,6 +256,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                       'A ${pet.distance} de ti',
                                       style: textTheme.bodyMedium?.copyWith(
                                         color: Colors.white70,
+                                        fontSize: 18,       //PARTE DEL KMS DE TI
                                       ),
                                     ),
                                   ],
@@ -304,7 +307,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                             color: Colors.white,
                                             fontSize: 26,
                                             fontWeight: FontWeight.bold,
-                                            letterSpacing: 2,
+                                            letterSpacing: 5,
                                             shadows: [
                                               Shadow(
                                                 color: Colors.black26,

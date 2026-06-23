@@ -45,7 +45,7 @@ class OrgPanelScreen extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: mascotas.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
+            separatorBuilder: (_, _) => const SizedBox(height: 8),
             itemBuilder: (context, i) {
               final data = mascotas[i].data() as Map<String, dynamic>;
               final petId = mascotas[i].id;
@@ -233,7 +233,7 @@ class _SolicitudesSheet extends StatelessWidget {
                   controller: scrollController,
                   padding: const EdgeInsets.all(16),
                   itemCount: solicitudes.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, i) {
                     final data = solicitudes[i].data() as Map<String, dynamic>;
                     return _SolicitudCard(

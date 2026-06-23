@@ -106,6 +106,14 @@ class ProfileScreen extends StatelessWidget {
               .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, solSnapshot) {
+
+            //ESTO SOLAMENTE MOSTRARA EL ERROR EN PANTALLA
+            //if (solSnapshot.hasError){
+            //  return Center(child: Text('Error: ${solSnapshot.error}'));
+            //}
+            //===============================================
+
+
             int activeApps = 0;
             int completedAdoptions = 0;
             final List<AdoptionHistoryItem> history = [];
@@ -133,6 +141,10 @@ class ProfileScreen extends StatelessWidget {
                           : 'Rechazada',
                 ));
               }
+
+              //NUEVO AGREGUE FINO
+              history.sort((a,b)=> b.date.compareTo(a.date));
+
             }
 
             final finalProfile = currentProfile.copyWith(

@@ -13,6 +13,8 @@ import 'screens/preferences_dialog.dart';
 import 'pantalla_mensajes.dart';
 import 'services/auth_service.dart';
 
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -30,6 +32,11 @@ class MainApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorSchemeSeed: const Color(0xFF1D9E75),
+
+        textTheme: const TextTheme().apply(fontSizeFactor: 1.9,), //CAMBIAR
+
+        iconTheme: const IconThemeData(size: 28,),    //CAMBIAR 
+
       ),
       home: const AppShell(),
     );

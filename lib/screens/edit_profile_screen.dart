@@ -198,6 +198,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 24),
               TextFormField(
                 controller: _nameController,
+                style: const TextStyle(fontSize: 20),    //agranda el texto
                 decoration: const InputDecoration(
                   labelText: 'Nombre completo',
                   border: OutlineInputBorder(),
@@ -213,7 +214,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               TextFormField(
                 controller: _cityController,
                 decoration: const InputDecoration(
+                
                   labelText: 'Ciudad',
+                  
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
@@ -226,6 +229,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
+                style: TextStyle(fontSize: 15),   //TELEFONO
                 keyboardType: TextInputType.phone,
                 decoration: const InputDecoration(
                   labelText: 'Telefono',
@@ -241,10 +245,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
+                style: TextStyle(fontSize: 15),
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Correo',
+                  
                   border: OutlineInputBorder(),
+                  
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
