@@ -12,6 +12,9 @@ class Chat {
   final String petId;
   final bool matchAprobado;
   final List<String> participantes;
+  final String orgId;
+  final String adoptanteId;
+  final bool adopcionFinalizada;
 
   Chat({
     required this.id,
@@ -21,6 +24,9 @@ class Chat {
     required this.petId,
     required this.matchAprobado,
     required this.participantes,
+    required this.orgId,
+    required this.adoptanteId,
+    required this.adopcionFinalizada,
   });
 }
 
@@ -104,6 +110,9 @@ class PantallaMensajes extends StatelessWidget {
               petId: data['petId'] ?? '',
               matchAprobado: data['matchAprobado'] ?? false,
               participantes: List<String>.from(data['participantes'] ?? []),
+              orgId: data['orgId'] ?? '',
+              adoptanteId: data['adoptanteId'] ?? '',
+              adopcionFinalizada: data['adopcionFinalizada'] ?? false,
             );
           }).toList();
 

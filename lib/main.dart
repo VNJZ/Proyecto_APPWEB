@@ -117,6 +117,8 @@ class _PaginaPrincipalState extends State<PaginaPrincipal> {
     final yaDefinido = prefs.getBool('pref_set_$uid') ?? false;
     if (!yaDefinido && mounted) {
       PreferencesDialog.show(context, uid);
+      // Marcamos como definido para que no vuelva a saltar automáticamente en futuros inicios de sesión
+      await prefs.setBool('pref_set_$uid', true);
     }
   }
 
