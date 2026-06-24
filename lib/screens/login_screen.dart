@@ -104,7 +104,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Patitas',
+                          'Kiltro',
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium

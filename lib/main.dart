@@ -27,7 +27,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Patitas',
+      title: 'Kiltro',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

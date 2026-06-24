@@ -64,7 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final nameLabel = isOrg ? 'Nombre del refugio' : 'Nombre completo';
     final nameHint = isOrg
         ? 'Ej: Probando ejemplo'
-        : 'Ej: Patitas';
+        : 'Ej: Kiltro';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Crear cuenta')),

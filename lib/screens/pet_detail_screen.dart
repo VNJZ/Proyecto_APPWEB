@@ -235,10 +235,10 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                       child: FutureBuilder<DocumentSnapshot>(
                         future: FirebaseFirestore.instance.collection('users').doc(pet.orgId).get(),
                         builder: (context, snapshot) {
-                          String shelterName = 'Refugio Patitas';
+                          String shelterName = 'Refugio Kiltro';
                           if (snapshot.hasData && snapshot.data!.exists) {
                             final userData = snapshot.data!.data() as Map<String, dynamic>?;
-                            shelterName = userData?['displayName'] ?? 'Refugio Patitas';
+                            shelterName = userData?['displayName'] ?? 'Refugio Kiltro';
                           }
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

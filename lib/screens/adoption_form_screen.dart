@@ -192,7 +192,7 @@ ${_motivoController.text.trim()}
                           Icon(Icons.home_outlined, size: 14, color: colorScheme.onSurfaceVariant),
                           const SizedBox(width: 4),
                           Text(
-                            'Refugio Patitas',
+                            'Refugio Kiltro',
                             style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ],

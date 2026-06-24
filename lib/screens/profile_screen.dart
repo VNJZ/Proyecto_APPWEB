@@ -131,7 +131,7 @@ class ProfileScreen extends StatelessWidget {
                 history.add(AdoptionHistoryItem(
                   petName: solData['petName'] ?? 'Mascota',
                   species: solData['petBreed'] ?? 'Mascota',
-                  shelterName: session.isOrganizacion ? fullName : 'Refugio Patitas',
+                  shelterName: session.isOrganizacion ? fullName : 'Refugio Kiltro',
                   date: (solData['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
                   status: estado == 'aprobada'
                       ? 'Completada'
