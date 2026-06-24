@@ -19,6 +19,14 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
   final _telefonoController = TextEditingController();
   final _direccionController = TextEditingController();
   final _motivoController = TextEditingController();
+
+  // Valores originales cargados desde users/{uid}, para detectar ediciones (T2).
+  String _nombreOriginal = '';
+  String _correoOriginal = '';
+  String _telefonoOriginal = '';
+  String _direccionOriginal = '';
+
+  bool _cargandoDatos = true;
   bool _enviando = false;
 
   @override
@@ -27,22 +35,35 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
     _cargarDatosUsuario();
   }
 
+  // T1 · Precargar nombre, correo, teléfono y dirección desde users/{uid}.
   Future<void> _cargarDatosUsuario() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) return;
+    final user = FirebaseAuth.instance.currentUser;
+    final uid = user?.uid;
+    if (uid == null) {
+      if (mounted) setState(() => _cargandoDatos = false);
+      return;
+    }
     try {
       final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      if (doc.exists && mounted) {
-        final data = doc.data() as Map<String, dynamic>;
+      final data = doc.exists ? (doc.data() as Map<String, dynamic>) : <String, dynamic>{};
+
+      _nombreOriginal = (data['displayName'] ?? user.displayName ?? '').toString();
+      _correoOriginal = (data['email'] ?? user.email ?? '').toString();
+      _telefonoOriginal = (data['phone'] ?? '').toString();
+      _direccionOriginal = (data['city'] ?? '').toString();
+
+      if (mounted) {
         setState(() {
-          _nombreController.text = data['displayName'] ?? '';
-          _correoController.text = data['email'] ?? FirebaseAuth.instance.currentUser?.email ?? '';
-          _telefonoController.text = data['phone'] ?? '';
-          _direccionController.text = data['city'] ?? '';
+          _nombreController.text = _nombreOriginal;
+          _correoController.text = _correoOriginal;
+          _telefonoController.text = _telefonoOriginal;
+          _direccionController.text = _direccionOriginal;
+          _cargandoDatos = false;
         });
       }
     } catch (e) {
       debugPrint('Error cargando datos de usuario: $e');
+      if (mounted) setState(() => _cargandoDatos = false);
     }
   }
 
@@ -68,6 +89,11 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
       final solDocRef = db.collection('solicitudes').doc();
       final solId = solDocRef.id;
 
+      final nombre = _nombreController.text.trim();
+      final correo = _correoController.text.trim();
+      final telefono = _telefonoController.text.trim();
+      final direccion = _direccionController.text.trim();
+
       final batch = db.batch();
 
       // 1. Guardar solicitud
@@ -78,16 +104,32 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
         'petBreed': widget.pet.breed,
         'orgId': orgId,
         'adoptanteId': uid,
-        'nombre': _nombreController.text.trim(),
-        'correo': _correoController.text.trim(),
-        'telefono': _telefonoController.text.trim(),
-        'direccion': _direccionController.text.trim(),
+        'nombre': nombre,
+        'correo': correo,
+        'telefono': telefono,
+        'direccion': direccion,
         'motivo': _motivoController.text.trim(),
         'estado': 'pendiente',
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // 2. Crear chat correspondiente (desbloqueado por defecto: matchAprobado = true)
+      // T2 · Si el adoptante editó algún dato de contacto, persistirlo en
+      // users/{uid} con merge:true para precargarlo en la próxima solicitud.
+      final cambios = <String, dynamic>{};
+      if (nombre != _nombreOriginal) cambios['displayName'] = nombre;
+      if (correo != _correoOriginal) cambios['email'] = correo;
+      if (telefono != _telefonoOriginal) cambios['phone'] = telefono;
+      if (direccion != _direccionOriginal) cambios['city'] = direccion;
+
+      if (cambios.isNotEmpty && uid != 'anonimo') {
+        batch.set(
+          db.collection('users').doc(uid),
+          cambios,
+          SetOptions(merge: true),
+        );
+      }
+
+      // 2. Crear chat correspondiente (bloqueado hasta que el refugio apruebe: matchAprobado = false)
       final chatDocRef = db.collection('chats').doc(solId);
       batch.set(chatDocRef, {
         'id': solId,
@@ -95,7 +137,7 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
         'ultimoMensaje': 'Solicitud de adopción enviada.',
         'timestamp': FieldValue.serverTimestamp(),
         'petId': widget.pet.id,
-        'matchAprobado': true,
+        'matchAprobado': false,
         'participantes': [uid, orgId],
         'adoptanteId': uid,
         'orgId': orgId,
@@ -103,12 +145,12 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
 
       // 3. Crear primer mensaje en el chat con los datos del formulario
       final mensajeInfo = '''
-¡Hola! Me gustaría adoptar a ${widget.pet.name}. 
+¡Hola! Me gustaría adoptar a ${widget.pet.name}.
 Estos son mis datos:
-- Nombre: ${_nombreController.text.trim()}
-- Correo: ${_correoController.text.trim()}
-- Teléfono: ${_telefonoController.text.trim()}
-- Dirección: ${_direccionController.text.trim()}
+- Nombre: $nombre
+- Correo: $correo
+- Teléfono: $telefono
+- Dirección: $direccion
 
 Motivo de adopción:
 ${_motivoController.text.trim()}
@@ -204,6 +246,12 @@ ${_motivoController.text.trim()}
             ),
 
             // Formulario
+            if (_cargandoDatos)
+              const Padding(
+                padding: EdgeInsets.all(48),
+                child: Center(child: CircularProgressIndicator()),
+              )
+            else
             Padding(
               padding: const EdgeInsets.all(20),
               child: Form(
@@ -212,8 +260,15 @@ ${_motivoController.text.trim()}
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Tus datos', style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Vienen de tu perfil. Si editas alguno, lo guardaremos para la próxima vez.',
+                      style: textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
                     const SizedBox(height: 16),
 
+                    // Campos editables, prellenados desde users/{uid} (T1) y
+                    // persistidos al enviar si cambian (T2).
                     TextFormField(
                       controller: _nombreController,
                       textCapitalization: TextCapitalization.words,
