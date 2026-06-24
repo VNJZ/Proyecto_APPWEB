@@ -22,6 +22,31 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
   bool _enviando = false;
 
   @override
+  void initState() {
+    super.initState();
+    _cargarDatosUsuario();
+  }
+
+  Future<void> _cargarDatosUsuario() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (doc.exists && mounted) {
+        final data = doc.data() as Map<String, dynamic>;
+        setState(() {
+          _nombreController.text = data['displayName'] ?? '';
+          _correoController.text = data['email'] ?? FirebaseAuth.instance.currentUser?.email ?? '';
+          _telefonoController.text = data['phone'] ?? '';
+          _direccionController.text = data['city'] ?? '';
+        });
+      }
+    } catch (e) {
+      debugPrint('Error cargando datos de usuario: $e');
+    }
+  }
+
+  @override
   void dispose() {
     _nombreController.dispose();
     _correoController.dispose();
@@ -62,7 +87,7 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // 2. Crear chat correspondiente (bloqueado por defecto: matchAprobado = false)
+      // 2. Crear chat correspondiente (desbloqueado por defecto: matchAprobado = true)
       final chatDocRef = db.collection('chats').doc(solId);
       batch.set(chatDocRef, {
         'id': solId,
@@ -70,10 +95,31 @@ class _AdoptionFormScreenState extends State<AdoptionFormScreen> {
         'ultimoMensaje': 'Solicitud de adopción enviada.',
         'timestamp': FieldValue.serverTimestamp(),
         'petId': widget.pet.id,
-        'matchAprobado': false,
+        'matchAprobado': true,
         'participantes': [uid, orgId],
         'adoptanteId': uid,
         'orgId': orgId,
+      });
+
+      // 3. Crear primer mensaje en el chat con los datos del formulario
+      final mensajeInfo = '''
+¡Hola! Me gustaría adoptar a ${widget.pet.name}. 
+Estos son mis datos:
+- Nombre: ${_nombreController.text.trim()}
+- Correo: ${_correoController.text.trim()}
+- Teléfono: ${_telefonoController.text.trim()}
+- Dirección: ${_direccionController.text.trim()}
+
+Motivo de adopción:
+${_motivoController.text.trim()}
+''';
+
+      final msjRef = chatDocRef.collection('messages').doc();
+      batch.set(msjRef, {
+        'id': msjRef.id,
+        'senderUid': uid,
+        'texto': mensajeInfo,
+        'timestamp': FieldValue.serverTimestamp(),
       });
 
       await batch.commit();

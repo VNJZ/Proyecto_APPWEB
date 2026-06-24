@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/pet_model.dart';
 import 'adoption_form_screen.dart';
@@ -16,15 +17,38 @@ class PetDetailScreen extends StatefulWidget {
 class _PetDetailScreenState extends State<PetDetailScreen> {
   bool _isFavorite = false;
 
+  bool _yaSolicitado = false;
+
   @override
   void initState() {
     super.initState();
     _checkIfFavorite();
+    _checkIfSolicitado();
+  }
+
+  Future<void> _checkIfSolicitado() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    
+    final snap = await FirebaseFirestore.instance
+        .collection('solicitudes')
+        .where('adoptanteId', isEqualTo: uid)
+        .where('petId', isEqualTo: widget.pet.id)
+        .get();
+
+    if (snap.docs.isNotEmpty && mounted) {
+      setState(() {
+        _yaSolicitado = true;
+      });
+    }
   }
 
   Future<void> _checkIfFavorite() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    
     final prefs = await SharedPreferences.getInstance();
-    final favorites = prefs.getStringList('favs_list') ?? [];
+    final favorites = prefs.getStringList('favs_list_$uid') ?? [];
     if (mounted) {
       setState(() {
         _isFavorite = favorites.contains(widget.pet.id);
@@ -33,8 +57,11 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
   }
 
   Future<void> _toggleFavorite() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
     final prefs = await SharedPreferences.getInstance();
-    final favorites = prefs.getStringList('favs_list') ?? [];
+    final favorites = prefs.getStringList('favs_list_$uid') ?? [];
     
     if (_isFavorite) {
       favorites.remove(widget.pet.id);
@@ -42,7 +69,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
       favorites.add(widget.pet.id);
     }
     
-    await prefs.setStringList('favs_list', favorites);
+    await prefs.setStringList('favs_list_$uid', favorites);
     
     setState(() {
       _isFavorite = !_isFavorite;
@@ -163,7 +190,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                       Icon(Icons.location_on_outlined, size: 18, color: colorScheme.outline),
                       const SizedBox(width: 4),
                       Text(
-                        'A ${pet.distance} de ti',
+                        pet.city,
                         style: TextStyle(color: colorScheme.outline, fontSize: 14),
                       ),
                     ],
@@ -261,20 +288,26 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                   // Botón Adoptar
                   Expanded(
                     child: FilledButton(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AdoptionFormScreen(pet: pet),
-                        ),
-                      ),
+                      onPressed: _yaSolicitado
+                          ? null
+                          : () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AdoptionFormScreen(pet: pet),
+                                ),
+                              );
+                              // Al volver del formulario, re-chequear si se envió la solicitud
+                              _checkIfSolicitado();
+                            },
                       style: FilledButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
+                        backgroundColor: _yaSolicitado ? Colors.grey : colorScheme.primary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                       child: Text(
-                        'Adoptar a ${pet.name}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        _yaSolicitado ? 'Solicitud enviada' : 'Adoptar a ${pet.name}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
                   ),

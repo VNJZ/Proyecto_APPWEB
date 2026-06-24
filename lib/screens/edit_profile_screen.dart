@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import '../services/permission_utils.dart';
 
 import '../models/user_profile.dart';
 
@@ -120,6 +121,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
 
     if (source != null) {
+      bool permissionGranted = false;
+      if (source == ImageSource.camera) {
+        permissionGranted = await PermissionUtils.requestCameraPermission(context);
+      } else {
+        permissionGranted = await PermissionUtils.requestGalleryPermission(context);
+      }
+      
+      if (!permissionGranted) return;
+
       final picked = await ImagePicker().pickImage(
         source: source,
         imageQuality: 80,
@@ -212,9 +222,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _cityController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Ciudad',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.my_location),
+                    tooltip: 'Obtener mi ciudad actual',
+                    onPressed: () async {
+                      final city = await PermissionUtils.getCurrentCity(context);
+                      if (city != null && mounted) {
+                        setState(() {
+                          _cityController.text = city;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Ciudad actualizada a: $city')),
+                        );
+                      }
+                    },
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {

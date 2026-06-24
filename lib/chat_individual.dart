@@ -113,9 +113,7 @@ class _ChatIndividualState extends State<ChatIndividual> {
                     if (mensajes.isEmpty) {
                       return Center(
                         child: Text(
-                          matchAprobado 
-                              ? '¡Chat desbloqueado! Comienza la conversación.' 
-                              : 'Solicitud enviada. Chat bloqueado hasta la aprobación.',
+                          '¡Comienza la conversación!',
                           style: TextStyle(color: Theme.of(context).colorScheme.outline),
                           textAlign: TextAlign.center,
                         ),
@@ -158,51 +156,35 @@ class _ChatIndividualState extends State<ChatIndividual> {
                   },
                 ),
               ),
-              if (!matchAprobado)
-                SafeArea(
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    child: const Row(
-                      children: [
-                        Icon(Icons.lock_outline, size: 18),
-                        SizedBox(width: 10),
-                        Text('Esperando aprobación del refugio'),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _controlador,
-                            textCapitalization: TextCapitalization.sentences,
-                            decoration: const InputDecoration(
-                              hintText: 'Escribe un mensaje...',
-                              border: OutlineInputBorder(),
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 10,
-                              ),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _controlador,
+                          textCapitalization: TextCapitalization.sentences,
+                          decoration: const InputDecoration(
+                            hintText: 'Escribe un mensaje...',
+                            border: OutlineInputBorder(),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
                             ),
-                            onSubmitted: (_) => _enviarMensaje(),
                           ),
+                          onSubmitted: (_) => _enviarMensaje(),
                         ),
-                        const SizedBox(width: 8),
-                        IconButton.filled(
-                          onPressed: _enviarMensaje,
-                          icon: const Icon(Icons.send),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton.filled(
+                        onPressed: _enviarMensaje,
+                        icon: const Icon(Icons.send),
+                      ),
+                    ],
                   ),
                 ),
+              ),
             ],
           ),
         );

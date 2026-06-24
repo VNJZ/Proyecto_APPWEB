@@ -2,9 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class OrgPanelScreen extends StatelessWidget {
-  /// Id de la organización cuyas mascotas y solicitudes se van a mostrar.
-  /// Se pasa por constructor en vez de leerlo de FirebaseAuth, así la pantalla
-  /// funciona también con el MockAuthService mientras no migramos a Firebase Auth.
   final String orgId;
 
   const OrgPanelScreen({super.key, required this.orgId});

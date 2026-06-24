@@ -3,12 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/auth_session.dart';
 import '../services/auth_service.dart';
 
-/// Pantalla de registro. El usuario elige rol (adoptante o refugio) y la cuenta
-/// queda creada en Firebase Auth + Firestore.
-///
-/// El [AppShell] está escuchando `AuthService.authStateChanges()`, así que al
-/// terminar el registro la app navega sola a [PaginaPrincipal]. No hace falta
-/// devolver nada por Navigator.pop.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -50,7 +44,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         role: _role,
       );
       // El stream de authStateChanges va a emitir la nueva sesión y el AppShell
-      // hará el rebuild. Aquí no necesitamos Navigator.pop ni nada más.
       if (!mounted) return;
     } on AuthException catch (error) {
       if (!mounted) return;
@@ -70,8 +63,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final isOrg = _role == UserRole.organizacion;
     final nameLabel = isOrg ? 'Nombre del refugio' : 'Nombre completo';
     final nameHint = isOrg
-        ? 'Ej: Refugio Patitas Felices'
-        : 'Ej: Camila Rojas';
+        ? 'Ej: Probando ejemplo'
+        : 'Ej: Patitas';
 
     return Scaffold(
       appBar: AppBar(title: const Text('Crear cuenta')),

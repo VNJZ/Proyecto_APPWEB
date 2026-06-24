@@ -103,7 +103,6 @@ class ProfileScreen extends StatelessWidget {
           stream: FirebaseFirestore.instance
               .collection('solicitudes')
               .where(session.isOrganizacion ? 'orgId' : 'adoptanteId', isEqualTo: session.userId)
-              .orderBy('createdAt', descending: true)
               .snapshots(),
           builder: (context, solSnapshot) {
             int activeApps = 0;
@@ -111,7 +110,15 @@ class ProfileScreen extends StatelessWidget {
             final List<AdoptionHistoryItem> history = [];
 
             if (solSnapshot.hasData) {
-              for (var doc in solSnapshot.data!.docs) {
+              final docs = solSnapshot.data!.docs.toList();
+              docs.sort((a, b) {
+                final aData = a.data() as Map<String, dynamic>;
+                final bData = b.data() as Map<String, dynamic>;
+                final aTime = (aData['createdAt'] as Timestamp?)?.toDate() ?? DateTime.fromMillisecondsSinceEpoch(0);
+                final bTime = (bData['createdAt'] as Timestamp?)?.toDate() ?? DateTime.fromMillisecondsSinceEpoch(0);
+                return bTime.compareTo(aTime);
+              });
+              for (var doc in docs) {
                 final solData = doc.data() as Map<String, dynamic>;
                 final estado = solData['estado'] as String? ?? 'pendiente';
                 

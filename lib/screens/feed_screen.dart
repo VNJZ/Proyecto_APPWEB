@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/pet_model.dart';
 import 'pet_detail_screen.dart';
 import 'adoption_form_screen.dart';
@@ -16,9 +18,31 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   final CardSwiperController controller = CardSwiperController();
+  Set<String> _requestedPetIds = {};
+  StreamSubscription? _solicitudesSub;
+
+  @override
+  void initState() {
+    super.initState();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      _solicitudesSub = FirebaseFirestore.instance
+          .collection('solicitudes')
+          .where('adoptanteId', isEqualTo: uid)
+          .snapshots()
+          .listen((snap) {
+        if (mounted) {
+          setState(() {
+            _requestedPetIds = snap.docs.map((d) => d.data()['petId'] as String).toSet();
+          });
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _solicitudesSub?.cancel();
     controller.dispose();
     super.dispose();
   }
@@ -65,7 +89,7 @@ class _FeedScreenState extends State<FeedScreen> {
               debugPrint('DEBUG FEED: Mascota "${pet.name}" -> orgId: "${pet.orgId}", Mi UID: "$uid"');
               return pet;
             })
-            .where((pet) => pet.orgId != uid)
+            .where((pet) => pet.orgId != uid && !_requestedPetIds.contains(pet.id))
             .toList();
 
             if (pets.isEmpty) {
@@ -94,13 +118,13 @@ class _FeedScreenState extends State<FeedScreen> {
               child: CardSwiper(
                 controller: controller,
                 cardsCount: pets.length,
+                numberOfCardsDisplayed: pets.length < 3 ? pets.length : 3,
                 allowedSwipeDirection: const AllowedSwipeDirection.only(
                   left: true,
                   right: true,
                 ),
-                onSwipe: (previousIndex, currentIndex, direction) {
+                onSwipe: (previousIndex, currentIndex, direction) async {
                   if (direction == CardSwiperDirection.right) {
-                    // Darle a adoptar mascota (swap derecha) te manda a rellenar el formulario
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -229,7 +253,7 @@ class _FeedScreenState extends State<FeedScreen> {
                                     const Icon(Icons.location_on_outlined, size: 16, color: Colors.white70),
                                     const SizedBox(width: 4),
                                     Text(
-                                      'A ${pet.distance} de ti',
+                                      pet.city,
                                       style: textTheme.bodyMedium?.copyWith(
                                         color: Colors.white70,
                                       ),

@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'chat_individual.dart';
 
-// Modelo Chat con los mismos campos que tendrá en Firebase
+//Fire contiene los mismos modelos que utilizamos en los codigos
 class Chat {
   final String id;
   final String nombre;
@@ -55,7 +55,9 @@ class PantallaMensajes extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error al cargar chats: ${snapshot.error}'));
+            return Center(
+              child: Text('Error al cargar chats: ${snapshot.error}'),
+            );
           }
 
           final docs = snapshot.data?.docs ?? [];
@@ -65,7 +67,11 @@ class PantallaMensajes extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.chat_bubble_outline, size: 64, color: colorScheme.outlineVariant),
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 64,
+                    color: colorScheme.outlineVariant,
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'No tienes conversaciones aún',
@@ -87,8 +93,8 @@ class PantallaMensajes extends StatelessWidget {
             final DateTime time = timestampRaw is Timestamp
                 ? timestampRaw.toDate()
                 : (timestampRaw is int
-                    ? DateTime.fromMillisecondsSinceEpoch(timestampRaw)
-                    : DateTime.now());
+                      ? DateTime.fromMillisecondsSinceEpoch(timestampRaw)
+                      : DateTime.now());
 
             return Chat(
               id: doc.id,
@@ -110,31 +116,32 @@ class PantallaMensajes extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => ChatIndividual(chat: chat)),
+                    MaterialPageRoute(
+                      builder: (_) => ChatIndividual(chat: chat),
+                    ),
                   );
                 },
                 leading: CircleAvatar(
                   backgroundColor: colorScheme.primaryContainer,
                   foregroundColor: colorScheme.onPrimaryContainer,
-                  child: Text(chat.nombre.isNotEmpty ? chat.nombre[0].toUpperCase() : '?'),
+                  child: Text(
+                    chat.nombre.isNotEmpty ? chat.nombre[0].toUpperCase() : '?',
+                  ),
                 ),
                 title: Text(
                   chat.nombre,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  chat.matchAprobado 
-                      ? chat.ultimoMensaje 
-                      : '🔒 Chat bloqueado — esperando aprobación',
+                  chat.ultimoMensaje,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: chat.matchAprobado ? null : colorScheme.outline,
-                  ),
                 ),
                 trailing: Text(
                   _formatearHora(chat.timestamp),
-                  style: textTheme.bodySmall?.copyWith(color: colorScheme.outline),
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.outline,
+                  ),
                 ),
               );
             },

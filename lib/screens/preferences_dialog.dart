@@ -117,6 +117,7 @@ class _PreferencesDialogState extends State<PreferencesDialog> {
               Text('Tipo de mascota', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               SegmentedButton<String>(
+                showSelectedIcon: false,
                 segments: const [
                   ButtonSegment(value: 'Perro', label: Text('Perros')),
                   ButtonSegment(value: 'Gato', label: Text('Gatos')),

@@ -5,7 +5,7 @@ class PetModel {
   final String name;
   final String breed;
   final String age;
-  final String distance;
+  final String city;
   final String weight;
   final String size;
   final List<String> imageUrls;
@@ -17,7 +17,7 @@ class PetModel {
     required this.name,
     required this.breed,
     required this.age,
-    required this.distance,
+    required this.city,
     required this.weight,
     required this.size,
     required this.imageUrls,
@@ -57,7 +57,7 @@ class PetModel {
       name: data['nombre'] ?? data['name'] ?? 'Mascota',
       breed: data['raza'] ?? data['breed'] ?? 'Mestizo',
       age: data['edad'] ?? data['age'] ?? '1 año',
-      distance: data['distance'] as String? ?? '2.5 km',
+      city: data['ciudad'] as String? ?? 'Desconocida',
       weight: data['peso'] as String? ?? '5 kg',
       size: inferredSize,
       imageUrls: urls,

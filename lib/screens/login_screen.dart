@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart';
 
-/// Pantalla de login con Firebase Auth.
-///
-/// El [AppShell] escucha `AuthService.authStateChanges()`, así que al iniciar
-/// sesión correctamente la app navega sola a la pantalla principal. Esta
-/// pantalla no necesita callbacks de éxito.
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 

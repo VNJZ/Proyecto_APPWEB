@@ -4,23 +4,10 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import '../models/auth_session.dart';
 
-/// Servicio de autenticación basado en Firebase Auth + Firestore.
-///
-/// Cada cuenta tiene un documento `users/{uid}` con su rol. Al iniciar sesión
-/// o al recibir un cambio de estado de Auth, este servicio lee ese doc y
-/// arma una [AuthSession] con `role` y `orgId` (cuando aplica).
-///
-/// Convención: si `role == organizacion`, entonces `orgId == uid` del usuario.
-/// Eso simplifica las queries `where('orgId', isEqualTo: ...)` en mascotas.
+
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  /// Stream que emite la sesión actual del usuario, o `null` si no hay nadie
-  /// logueado. Se dispara cada vez que cambia el estado de Firebase Auth.
-  ///
-  /// El [AppShell] lo escucha vía `StreamBuilder` para decidir entre Login
-  /// y la app principal sin tener que manejar estado manualmente.
   static Stream<AuthSession?> authStateChanges() {
     return _auth.authStateChanges().asyncMap(_buildSession);
   }
@@ -34,8 +21,7 @@ class AuthService {
     try {
       final doc = await _firestore.collection('users').doc(user.uid).get();
       if (!doc.exists) {
-        // Usuario autenticado pero sin perfil — degradamos a adoptante.
-        // Esto puede pasar si alguien crea la cuenta a mano en Firebase Console.
+        // Usuario autenticado pero sin perfil, entonces degradamos a adoptante, esto nos puede pasar si alguien crea la cuenta a mano en Firebase Console.
         return AuthSession(
           userId: user.uid,
           email: user.email ?? '',
@@ -93,7 +79,6 @@ class AuthService {
     }
   }
 
-  /// Inicia sesión con Google.
   /// Si la cuenta de Google es nueva en el sistema de base de datos,
   /// la inicializamos por defecto como una cuenta de Adoptante.
   static Future<AuthSession> signInWithGoogle() async {

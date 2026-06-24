@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import '../services/permission_utils.dart';
 
 class PublishPetScreen extends StatefulWidget {
   const PublishPetScreen({super.key});
@@ -18,6 +19,7 @@ class _PublishPetScreenState extends State<PublishPetScreen> {
   final _razaController = TextEditingController();
   final _edadController = TextEditingController();
   final _pesoController = TextEditingController();
+  final _ciudadController = TextEditingController();
   
   String _animalType = 'Perro';
   String _genero = 'Macho';
@@ -30,6 +32,7 @@ class _PublishPetScreenState extends State<PublishPetScreen> {
     _razaController.dispose();
     _edadController.dispose();
     _pesoController.dispose();
+    _ciudadController.dispose();
     super.dispose();
   }
 
@@ -55,6 +58,15 @@ class _PublishPetScreenState extends State<PublishPetScreen> {
     );
 
     if (source != null) {
+      bool permissionGranted = false;
+      if (source == ImageSource.camera) {
+        permissionGranted = await PermissionUtils.requestCameraPermission(context);
+      } else {
+        permissionGranted = await PermissionUtils.requestGalleryPermission(context);
+      }
+      
+      if (!permissionGranted) return;
+
       final picked = await ImagePicker().pickImage(
         source: source,
         imageQuality: 80,
@@ -94,6 +106,7 @@ class _PublishPetScreenState extends State<PublishPetScreen> {
         'raza': _razaController.text.trim(),
         'edad': _edadController.text.trim(),
         'peso': '${_pesoController.text.trim()} Kg',
+        'ciudad': _ciudadController.text.trim(),
         'genero': _genero,
         'imagenUrl': imageUrl ?? '',
         'orgId': orgId,
@@ -244,6 +257,33 @@ class _PublishPetScreenState extends State<PublishPetScreen> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: _ciudadController,
+                decoration: InputDecoration(
+                  labelText: 'Ciudad de la mascota',
+                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.location_on),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.my_location),
+                    tooltip: 'Usar mi ubicación',
+                    onPressed: () async {
+                      final city = await PermissionUtils.getCurrentCity(context);
+                      if (city != null && mounted) {
+                        setState(() {
+                          _ciudadController.text = city;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Ubicación obtenida: $city')),
+                        );
+                      }
+                    },
+                  ),
+                ),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Ingresa la ciudad' : null,
               ),
               const SizedBox(height: 20),
 
